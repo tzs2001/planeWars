@@ -1,0 +1,70 @@
+﻿* {
+    padding: 0;
+    margin: 0;
+}
+
+#game {
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#gameStart {
+    width: 100%;
+    height: 100%;
+    background: url(images/shoot_copyright.png) no-repeat 50% 20%
+    ,           url(images/background.jpg)            
+    ;
+    position: relative;
+}
+
+#gameStart #play {
+    width: 57px;
+    height: 51px;
+    display: block;
+    position: absolute;
+    left: 50%;
+    top: 80%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    background: url(images/enemy1_down3.png) no-repeat 100% / 100%;
+}
+
+#gameEnter {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: url(images/background.jpg);
+    display: none;
+}
+
+#gameEnter #myTank {
+    width: 99px;
+    height: 124px;
+    background: url(images/hero.gif) no-repeat 100% / 100%;
+    position: absolute;
+    cursor: pointer;
+    left: calc(50% - 49.5px);
+    bottom: 0;
+}
+
+#gameEnter #bullets,
+#gameEnter #enemys {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#gameEnter #bullets .b {
+    width: 9px;
+    height: 21px;
+    position: absolute;
+    left: calc(50% - 3px);
+    bottom: 135px;
+}
+
+#gameEnter #enemys .e {
+    position: absolute;
+}
