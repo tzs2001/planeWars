@@ -1,24 +1,18 @@
 ﻿/*
  *  已知的 BUG :
- *      1、该 BUG 导致当游戏窗口改变时，飞机的移动范围不变。
- *      2、该 BUG 导致当连续敲击空格时，敌机不会出现。（暂时无法修复）
+ *      1、该 BUG 导致当游戏窗口改变时，飞机的移动范围不会改变。
+ *      2、该 BUG 导致当连续暂停游戏时，敌机不会出现。
+ *      3、该 BUG 导致当敌机爆炸时暂停游戏，爆炸动画延长。
+ *      4、该 BUG 导致敌机爆炸动画时间不一，甚至没有爆炸动画。
+ *      5、该 BUG 导致敌机爆炸时停留在页面并循环爆炸动画。
+ *      6、该 BUG 导致死亡次数多时，游戏崩溃。
+ *      7、该 BUG 导致长按开始游戏时，可以在任意位置开始。
 */
 
 window.onload = function() {
     function getId(idName) {
         return document.getElementById(idName);
     }
-
-    let game = getId("game")
-    ,   gameStart = getId("gameStart")
-    ,   playButton = getId("play")
-    ,   gameEnter = getId("gameEnter")
-    ,   myTank = getId("myTank")
-    ,   bullets = getId("bullets")
-    ,   enemys = getId("enemys")
-    ,   score = getId("scores").firstElementChild.firstElementChild;
-    ;
-
 
     function getStyle(ele, attr) {
         let res = null;
@@ -32,12 +26,27 @@ window.onload = function() {
         return parseFloat(res);
     }
 
+    let game = getId("game")
+    ,   gameStart = getId("gameStart")
+    ,   playButton = getId("play")
+    ,   gameEnter = getId("gameEnter")
+    ,   myPlane = getId("myPlane")
+    ,   bullets = getId("bullets")
+    ,   enemys = getId("enemys")
+    ,   tips = getId("tips")
+    ,   score = getId("scores").firstElementChild.firstElementChild;
+    ;
+
     let gameW = getStyle(game, "width")
     ,   gameH = getStyle(game, "height")
     ;
 
-    let myTankW = getStyle(myTank, "width")
-    ,   myTankH = getStyle(myTank, "height")
+    let myPlaneW = getStyle(myPlane, "width")
+    ,   myPlaneH = getStyle(myPlane, "height")
+    ;
+
+    let maxW = document.body.clientWidth - myPlane.offsetWidth
+    ,   maxH = document.body.clientHeight - myPlane.offsetHeight
     ;
 
     let bulletW = 9
@@ -54,67 +63,145 @@ window.onload = function() {
     ,   enemyss = []
     ;
 
+    let enemysObj = {
+        enemy1: {
+            width: 57,
+            height: 51,
+            score: 100,
+            hp: 100
+        },
+        enemy2: {
+            width: 69,
+            height: 95,
+            score: 500,
+            hp: 500
+        },
+        enemy3: {
+            width: 169,
+            height: 258,
+            score: 1000,
+            hp: 1000
+        }
+    }
+
+    tips.onclick = function() {
+        tips.style.display = "none"
+    }
+
     playButton.onclick = function() {
         gameStart.style.display = "none";
         gameEnter.style.display = "block";
 
-        document.onkeyup = function(evt) {
-            let keyVal = evt.keyCode;
+        document.onmousedown = function(evt) {
+            this.onmousemove = myPlaneMove;
 
-            if (keyVal == 32) {
-                if (!gameStatus) {
-                    scores = 0;
-                    this.onmousemove = myTankMove;
+            bgMove();
+            shot();
+            appearEnemy();
 
-                    bgMove();
-                    shot();
-                    appearEnemy();
-
-                    if (bulletss != 0) reStart(bulletss, 1);
-                    if (enemyss != 0) reStart(enemyss);
-                } else {
-                    this.onmousemove = null;
-
-                    clearInterval(bulletTimer);
-                    clearInterval(enemyTimer);
-                    clearInterval(bgTimer);
-                    bulletTimer = null;
-                    enemyTimer = null;
-                    bgTimer = null;
-
-                    clear(bulletss);
-                    clear(enemyss);
-                }
-                gameStatus = !gameStatus;
-            }
+            if (bulletss != 0) reStart(bulletss, 1);
+            if (enemyss != 0) reStart(enemyss);
         }
+
+        document.onmouseup = function(evt) {
+            this.onmousemove = null;
+
+            clearInterval(bulletTimer);
+            clearInterval(enemyTimer);
+            clearInterval(bgTimer);
+            bulletTimer = null;
+            enemyTimer = null;
+            bgTimer = null;
+
+            clear(bulletss);
+            clear(enemyss);
+        }
+
+        document.addEventListener("touchstart", function(evt) {
+            let e = evt || window.event;
+            let touch = e.targetTouches[0];
+
+            oL = touch.clientX - myPlane.offsetLeft;
+            oT = touch.clientY - myPlane.offsetTop;
+
+                    
+            this.ontouchmove = myPlaneMove;
+
+            bgMove();
+            shot();
+            appearEnemy();
+
+            if (bulletss != 0) reStart(bulletss, 1);
+            if (enemyss != 0) reStart(enemyss);
+        })
+
+        document.addEventListener("touchmove", function(evt) {
+            let e = evt || window.event;
+            let touch = e.targetTouches[0];
+
+            let oLeft = touch.clientX - oL
+            ,   oTop = touch.clientY - oT
+            ;
+
+            if (oLeft < 0) {
+                oLeft = 0;
+            } else if (oLeft >= maxW) {
+                oLeft = maxW;
+            }
+
+            if (oTop < 0) {
+                oTop = 0;
+            } else if (oTop >= maxH) {
+                oTop = maxH; 
+            }
+
+            myPlane.style.left = oLeft + "px";
+            myPlane.style.top = oTop + "px";  
+        })
+
+        document.addEventListener("touchend", function() {
+            this.onmousemove = null;
+
+            clearInterval(bulletTimer);
+            clearInterval(enemyTimer);
+            clearInterval(bgTimer);
+            bulletTimer = null;
+            enemyTimer = null;
+            bgTimer = null;
+
+            clear(bulletss);
+            clear(enemyss);
+
+            document.removeEventListener("touchmove", defaultEvent);
+        })
     }
 
-    function myTankMove(evt) {
+
+    function myPlaneMove(evt) {
         let e = evt || window.event;
         
         let mouse_x = e.x || e.pageX
         ,   mouse_y = e.y || e.pageY
         ;
 
-        let last_myTank_left = mouse_x - myTankW / 2
-        ,   last_myTank_top = mouse_y - myTankH / 2
+        let last_myPlane_left = mouse_x - myPlaneW / 2
+        ,   last_myPlane_top = mouse_y - myPlaneH / 2
         ;
 
-        if (last_myTank_left <= 0) {
-            last_myTank_left = 0;
-        } else if (last_myTank_left >= gameW - myTankW) {
-            last_myTank_left = gameW - myTankW;
+        if (last_myPlane_left <= 0) {
+            last_myPlane_left = 0;
+        } else if (last_myPlane_left >= gameW - myPlaneW) {
+            last_myPlane_left = gameW - myPlaneW;
         }
         
-        if (last_myTank_top <= 0) {
-            last_myTank_top = 0;
-        } else if (last_myTank_top >= gameH - myTankH) {
-            last_myTank_top = gameH - myTankH;
+        if (last_myPlane_top <= 0) {
+            last_myPlane_top = 0;
+        } else if (last_myPlane_top >= gameH - myPlaneH) {
+            last_myPlane_top = gameH - myPlaneH;
         } 
 
-        myTank.style.left = last_myTank_left + "px";
-        myTank.style.top = last_myTank_top + "px";
+        myPlane.style.left = last_myPlane_left + "px";
+        myPlane.style.top = last_myPlane_top + "px";
     }
 
 
@@ -131,12 +218,12 @@ window.onload = function() {
         bullet.src = "images/bullet1.png"
         bullet.className = "b";
 
-        let myTankL = getStyle(myTank, "left")
-        ,   myTankT = getStyle(myTank, "top")
+        let myPlaneL = getStyle(myPlane, "left")
+        ,   myPlaneT = getStyle(myPlane, "top")
         ;
 
-        let bulletL = myTankL + myTankW / 2 - bulletW / 2
-        ,   bulletT = myTankT - bulletH
+        let bulletL = myPlaneL + myPlaneW / 2 - bulletW / 2
+        ,   bulletT = myPlaneT - bulletH
         ;
 
         bullet.style.left = bulletL + "px";
@@ -161,28 +248,6 @@ window.onload = function() {
                 ele.style[attr] = moveVal + speed + "px";
             }
         }, 10);
-    }
-
-
-    let enemysObj = {
-        enemy1: {
-            width: 57,
-            height: 51,
-            score: 100,
-            hp: 100
-        },
-        enemy2: {
-            width: 69,
-            height: 95,
-            score: 500,
-            hp: 500
-        },
-        enemy3: {
-            width: 169,
-            height: 258,
-            score: 1000,
-            hp: 1000
-        }
     }
 
     function appearEnemy() {
@@ -334,14 +399,14 @@ window.onload = function() {
                 ,   enemyW = getStyle(enemyss[i], "width")
                 ;
 
-                let myTankL = getStyle(myTank, "left")
-                ,   myTankT = getStyle(myTank, "top")
+                let myPlaneL = getStyle(myPlane, "left")
+                ,   myPlaneT = getStyle(myPlane, "top")
                 ;
 
-                let condition = myTankL + myTankW >= enemyL
-                             && myTankL <= enemyL + enemyW
-                             && myTankT <= enemyT + enemyH
-                             && myTankT + myTankW >= enemyT
+                let condition = myPlaneL + myPlaneW >= enemyL
+                             && myPlaneL <= enemyL + enemyW
+                             && myPlaneT <= enemyT + enemyH
+                             && myPlaneT + myPlaneW >= enemyT
                 ;
 
                 if (condition) {
@@ -357,16 +422,19 @@ window.onload = function() {
 
                     bulletss = [];
                     enemyss = [];
+                    scores = 0;
+                    score.innerHTML = scores;
 
                     document.onmousemove = null;
+                    gameStatus = !gameStatus;
 
                     alert("就这？？？？？");
 
                     gameStart.style.display = "block";
                     gameEnter.style.display = "none";
 
-                    myTank.style.left = "calc(50% - 49.5px)";
-                    myTank.style.top = gameH - myTankH + "px";
+                    myPlane.style.left = "calc(50% - 49.5px)";
+                    myPlane.style.top = gameH - myPlaneH + "px";
                 }
             }
         }
