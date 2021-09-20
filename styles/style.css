@@ -1,6 +1,7 @@
 ﻿* {
     padding: 0;
     margin: 0;
+    touch-action: none;
 }
 
 #game {
@@ -12,22 +13,36 @@
 #gameStart {
     width: 100%;
     height: 100%;
-    background: url(../images/shoot_copyright.png) no-repeat 50% 20%
+    background: url(../images/title.png) no-repeat 50% 20%
     ,           url(../images/background.jpg)            
     ;
     position: relative;
 }
 
+#gameStart #tips {
+    width: 100%;
+    height: 100%;
+    display: block;
+    background: url(../images/tips.jpg) no-repeat center / contain, #737373;
+    position: absolute;
+    z-index: 999;
+    opacity: 0.8;
+}
+
 #gameStart #play {
-    width: 57px;
-    height: 51px;
+    width: 100px;
+    height: 50px;
+    color: #fff;
+    font-weight: bold;
+    text-align: center;
+    border: 1px solid #fff;
+    line-height: 50px;
     display: block;
     position: absolute;
     left: 50%;
     top: 80%;
     transform: translate(-50%, -50%);
     cursor: pointer;
-    background: url(../images/enemy1_down3.png) no-repeat 100% / 100%;
 }
 
 #gameEnter {
@@ -38,7 +53,7 @@
     display: none;
 }
 
-#gameEnter #myTank {
+#gameEnter #myPlane {
     width: 99px;
     height: 124px;
     background: url(../images/hero.gif) no-repeat 100% / 100%;
